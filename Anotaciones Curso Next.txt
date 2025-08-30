@@ -1,0 +1,139 @@
+Crear un proyecto
+	Ir a la carpeta que va a contener a la Carpeta [NOMBRE_PROYECTO]
+		Es decir, la línea de abajo crea la carpeta [NOMBRE_PROYECTO] y pone todos los archivos adentro
+	npx create-next-app [NOMBRE_PROYECTO]
+
+	No es obligación trabajar con TS 
+
+	Poner `src/` directory = "Sí" cuando los proyectos sean relativamente grandes y puedan ir creciendo
+
+	App Router: Yes
+
+	TurboPack: Yes
+
+	Customize import alias: No
+	
+Ejecutar un proyecto
+	npm run dev
+
+Crear una página nueva en una dirección
+	Por ejemplo www.com.ar/about
+		En /app creo la carpeta /about y dentro el componente page.tsx con el siguiente contenido
+		
+		export default function AboutPage(){
+		    return (
+		        <>
+		            <span className="text-7xl">About page</span>
+		        </>
+		    )
+		}
+
+	Eso ya arma la ruta automáticamente para navegar por navegador
+
+Cambiar HTML/head/title y meta-description
+	Abrir /app/layout y modificar export const metadata: Metadata = {
+
+	Esto lo cambia a nivel global
+
+	IMPORTANTE:
+		Configurar como mínimo el título y la descripción
+
+	Puedo cambiarlo en cada página:
+		Abrir uno de los componentes, por ejemplo /app/about/page.tsx y por fuera de la exportación poner:
+			export const metadata = {
+			    title: 'Acerca de | Mi proyecto',
+			    description: 'Acerca de | Descripción de mi proyecto',
+			};
+
+Layouts distintos para diferentes páginas
+	Puedo poner un layout.tsx dentro de la carpeta donde quiero modificar el diseño. Ese layout es un HOC, donde el children es la página que quiero renderizar.
+		En ese HOC tengo que implementar el children donde lo quiera renderizar
+
+	Si quiero tener un solo layout para múltiples carpetas puedo tener esta estructura de archivos:
+
+	/
+	|_app
+	     |_(general)
+			|_about
+			|_contact
+			|_pricing
+			|_layout.tsx // <--- Este layout impacta sobre las tres carpetas. Se le pone (general) para que no agregue "general" a la URL
+	     |_layout.tsx	// Layout y
+	     |_page.tsx		// Home page
+
+
+
+
+UsePathname
+	Sirve para saber el path en el que estoy
+	Es un componente del lado del cliente, por lo cual si quiero usarlo tengo que poner 'use client' en la parte superior
+
+Publicación de proyecto
+	1) Build del proyecto
+		Cancelar la ejecución del proyecto y correr: npm run build
+
+Redireccionar a una URL dentro del proyecto por código
+	redirect('/dashboard/counter')
+		Esto redirecciona a esa página puntual, entiendo que es un comando del servidor
+
+NextImage
+	Cambiar <img por <Image
+				src="/profile.png"
+				width={500}
+				height={500}
+				alt="Picture of the author"
+			/>
+
+	Para poner imágenes hosteadas en otro sitio
+		En /next.config.ts
+			const nextConfig: NextConfig = {
+			  images: {
+			    remotePatterns: [
+			      {
+			        protocol: 'https',
+			        hostname: 'images.unsplash.com'
+			      }
+			    ]
+			  }
+			};
+
+	Se puede hacer que una imagen se cargue cuando entre al viewport, para eso poner la propiedad
+		priority={false}
+
+Armar una ruta que reciba un parámetro
+	Dentro de la carpeta que quiero contener esa página creo el archivo:
+		pokemon/[id]/page.tsx
+
+Puedo configurar el caché al momento de hacer un fetch():
+	const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`, {
+		cache: '' // <--- Acá estan todas las opciones
+	}) // "no-store" es que cada vez que entre a la página, se haga la solicitud
+
+Metadata dinámica (5/59)
+	
+
+Cargar imágenes desde otros dominios
+	/next.config.ts
+		Agregar en remotePatterns:
+			const nextConfig: NextConfig = {
+			  images: {
+			    remotePatterns: [
+			      {
+			        protocol: 'https',
+			        hostname: 'images.unsplash.com'
+			      },
+			      {
+			        protocol: 'https',
+			        hostname: 'raw.githubusercontent.com'
+			      }
+			    ]
+			  }
+			};
+
+Not found personalizado a cada carpeta (5/62)
+	Copiar un archivo not-found (es estandar) a la carpeta que quiero aplicar
+
+Generación estática y revalidación
+	Se pueden generar de antemano páginas estáticas que reciben un ID, para servirlas estáticamente.
+		Esa generación se produce en Build Time (npm run build) <--- Compilación para subir, creo...
+	En caso que aún no existan, se pueden generar esas estáticas dinámicamente
