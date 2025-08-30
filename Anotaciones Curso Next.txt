@@ -110,7 +110,24 @@ Puedo configurar el caché al momento de hacer un fetch():
 	}) // "no-store" es que cada vez que entre a la página, se haga la solicitud
 
 Metadata dinámica (5/59)
-	
+	Usar función generateMetadata (es una función reservada de Next)
+		export async function generateMetadata({params}:Props): Promise<Metadata>{
+		  try{
+		    const {id, name} = await getPokemon(params.id)
+		
+		    return {
+		        title: `#${id} - ${name}`,
+		        description: `Página del Pokémon ${name}`
+		    }
+		  }catch(ex){
+		    return {
+		        title: `Página del Pokemon`,
+		        description: `Descripción del Pokemon`
+		    }
+		  }
+		}
+
+	Esto va fuera de la exportación del componente
 
 Cargar imágenes desde otros dominios
 	/next.config.ts
@@ -133,7 +150,35 @@ Cargar imágenes desde otros dominios
 Not found personalizado a cada carpeta (5/62)
 	Copiar un archivo not-found (es estandar) a la carpeta que quiero aplicar
 
-Generación estática y revalidación
-	Se pueden generar de antemano páginas estáticas que reciben un ID, para servirlas estáticamente.
-		Esa generación se produce en Build Time (npm run build) <--- Compilación para subir, creo...
-	En caso que aún no existan, se pueden generar esas estáticas dinámicamente
+Generación estática y revalidación (5/69)
+	Se pueden generar de antemano, estáticamente, páginas dinámicas que reciben un ID, para servirlas estáticamente.
+		Esa generación se produce en Build Time (npm run build)
+
+	Para eso, se ejecuta una función que se llama generateStaticParams, la cual devuelve un array estático con los parámetros que espera la página dinámica para que genere dinámicamente en tiempo de construcción todas esas páginas estáticas.
+
+	En el ejemplo 5/62 la página dinámica espera el parámetro id, entonces mi función generateStaticParams va a ser así:
+		export async function generateStaticParams() {
+		  return [
+		    { id: '1' },
+		    { id: '2' },
+		    { id: '3' },
+		    { id: '4' },
+		    { id: '5' },
+		    { id: '6' }
+		  ];
+
+	Al tener esto, y ejecutar npm run build, de antemano Next genera las páginas estáticas para los casos donde se reciban parámetros del 1 al 6, entonces no tiene que volver a generarlas cuando el usuario las visite. En caso que el usuario ingrese id: 7, se genera esa página también.
+
+	En este ejemplo tenemos:
+		try {
+		    const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`, {
+		      //cache: 'force-cache'
+		      next: {
+		        revalidate: 60 * 60 * 24 * 30 * 6
+		      }
+		    }).then(resp => resp.json());
+
+	Esto hace que Next revalide cada X segundos (60 * 60 * 24 * 30 * 6 = 6 meses). Funciona porque Next, al momento de servir la página rastrea si existen fetchs que se deban revalidar. Si no hay que revalidar, sirve la versión actual, si expiró validación la regenera y sirve la nueva versión.
+
+	Si se quiere revalidar una página independientemente del fetch se puede poner esta instrucción fuera de la exportación del componente:
+		export const revalidate = 60 * 60 * 30 * 6;
