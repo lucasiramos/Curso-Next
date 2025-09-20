@@ -271,3 +271,9 @@ Puedo tener APIs (backend) en cualquier lugar del proyecto, pero para mejor orde
 			export async function GET() {
 			    return Response.json({ count: 100 })
 			}
+
+Refrescar la ruta actualizando solo los componentes que cambiaron: 10/134
+	const router = useRouter()
+	router.refresh()
+
+	
